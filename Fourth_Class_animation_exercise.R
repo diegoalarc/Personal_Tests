@@ -205,5 +205,5 @@ p + transition_states(semester, transition_length = 1, state_length = 1, wrap = 
   shadow_mark() +
   enter_grow() +
   enter_fade()
-
+#examples
 anim_save("eagle_barplot_EO_vs_prog_experiences.gif")
