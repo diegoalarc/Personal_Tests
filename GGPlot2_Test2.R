@@ -1,7 +1,10 @@
 install.packages("tidyverse")
 install.packages("gifski")
 install.packages("png")
+install.packages("RCurl")
+install.packages("ggthemes")
 
+library(ggthemes)
 library(gifski)
 library(tidyverse)
 library(png)
@@ -31,7 +34,7 @@ k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status))+
 
 k
 
-k + transition_time(Year) +
+k + theme_stata() + transition_time(Year) +
   ease_aes('linear')+
   labs(title = "Born vs Death in Chile")+
   shadow_wake(wake_length = 0.1, alpha = FALSE)+
