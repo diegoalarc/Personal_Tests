@@ -29,6 +29,7 @@ summary(datos)
 
 library(ggplot2)
 library(gganimate)
+
 k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status))+
   geom_point(alpha=.5)
 
