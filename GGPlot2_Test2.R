@@ -35,14 +35,12 @@ k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status))+
 
 k
 
-k + theme_fivethirtyeight() +
-  scale_fill_manual(values = fivethirtyeight_pal()(3)) +
-  scale_color_manual(values = fivethirtyeight_pal()(3)) + transition_time(Year) +
-  ease_aes('cubic-in-out') +
-  labs(title = "Born vs Death in Chile") +
+k + theme_stata() + transition_time(Year) +
+  ease_aes('linear') +
+  labs(title = "Born vs Death for Chile - Germany - USA") +
   ylab(label = "Persons (Rate)") +
   xlab(label = "Years") +
-  shadow_wake(wake_length = 0.1, alpha = FALSE)+
+  shadow_wake(wake_length = .5, alpha = FALSE)+
   enter_fade() +
   exit_fade()
 
