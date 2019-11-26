@@ -30,12 +30,14 @@ summary(datos)
 library(ggplot2)
 library(gganimate)
 
-k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status, width = 0.4))+
-  geom_point(alpha=.5)
+k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status))+
+  geom_point(alpha =.5)
 
 k
 
-k + theme_stata() + transition_time(Year) +
+k + theme_stata(base_size = 15) + 
+  theme(legend.position = "right", legend.key.size = unit(.5, 'lines')) +
+  transition_time(Year) +
   ease_aes('linear') +
   labs(title = "Born vs Death for Chile - Germany - USA") +
   ylab(label = "Persons (Rate)") +
