@@ -30,7 +30,7 @@ summary(datos)
 library(ggplot2)
 library(gganimate)
 
-k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status))+
+k <- ggplot(data=datos, aes(y=Persons, x=Year, color=Country, size=Status, width = 0.4))+
   geom_point(alpha=.5)
 
 k
@@ -40,7 +40,7 @@ k + theme_stata() + transition_time(Year) +
   labs(title = "Born vs Death for Chile - Germany - USA") +
   ylab(label = "Persons (Rate)") +
   xlab(label = "Years") +
-  shadow_wake(wake_length = .5, alpha = FALSE)+
+  shadow_wake(wake_length = 1.5, alpha = FALSE, wrap = FALSE, size = TRUE)+
   enter_fade() +
   exit_fade()
 
