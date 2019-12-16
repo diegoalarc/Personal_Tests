@@ -1,0 +1,107 @@
+library(raster)
+# Blue
+b2 <- raster("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B2.TIF")
+# Green
+b3 <- raster("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B3.TIF")
+# Red
+b4 <- raster("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B4.TIF")
+# Near Infrared (NIR)
+b5 <- raster("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B5.TIF")
+
+b2
+
+s <- stack(b4, b3, b2)
+plotRGB(s, axes = TRUE, stretch = "lin", main = "Landsat True Color Composite")
+
+
+
+# first create a list of raster layers to use
+filenames <- paste0("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B", 1:7, ".tif")
+filenames
+##  [1] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B1.TIF"
+##  [2] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B2.TIF"
+##  [3] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B3.TIF"
+##  [4] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B4.TIF"
+##  [5] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B5.TIF"
+##  [6] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B6.TIF"
+##  [7] "data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B7.TIF"
+
+landsat <- stack(filenames)
+landsat
+
+
+par(mfrow = c(2,2))
+plot(b2, main = "Blue", col = gray(0:100 / 100))
+plot(b3, main = "Green", col = gray(0:100 / 100))
+plot(b4, main = "Red", col = gray(0:100 / 100))
+plot(b5, main = "NIR", col = gray(0:100 / 100))
+
+
+##To make a "true (or natural) color" image, that is, something that looks like 
+##a normal photograph (vegetation in green, water blue etc), we need bands in 
+##the red, green and blue regions. For this Landsat image, band 4 (red), 3 (green), 
+##and 2 (blue) can be used. The plotRGB method can be used to combine them into 
+##a single composite. You can also supply additional arguments to plotRGB to improve 
+##the visualization (e.g. a linear stretch of the values, using strecth = "lin").
+
+landsatRGB <- stack(b4, b3, b2)
+plotRGB(landsatRGB, axes = TRUE, stretch = "lin", main = "Landsat True Color Composite")
+
+
+##The true-color composite reveals much more about the landscape than the earlier 
+##gray images. Another popular image visualization method in remote sensing is 
+##known "false color" image in which NIR, red, and green bands are combined.
+##This representation is popular as it makes it easy to see the vegetation (in red).
+
+par(mfrow = c(1,2))
+plotRGB(landsatRGB, axes=TRUE, stretch="lin", main="Landsat True Color Composite")
+landsatFCC <- stack(b5, b4, b3)
+plotRGB(landsatFCC, axes=TRUE, stretch="lin", main="Landsat False Color Composite")
+
+
+##You can select specific layers (bands) using subset function, or via indexing.
+
+# select first 3 bands only
+landsatsub1 <- subset(landsat, 1:3)
+# same
+landsatsub2 <- landsat[[1:3]]
+# Number of bands in the original and new data
+nlayers(landsat)
+## [1] 7
+nlayers(landsatsub1)
+## [1] 3
+nlayers(landsatsub2)
+## [1] 3
+
+##We won't use the last four bands in landsat. You can remove those using
+##but for our case thereis only 7
+
+landsat <- subset(landsat, 1:7)
+
+names(landsat)
+##[1] "LT52240632006164CUB03_B1" "LT52240632006164CUB03_B2" "LT52240632006164CUB03_B3"
+##[4] "LT52240632006164CUB03_B4" "LT52240632006164CUB03_B5" "LT52240632006164CUB03_B6"
+##[7] "LT52240632006164CUB03_B7"
+
+names(landsat) <- c('ultra-blue', 'blue', 'green', 'red', 'NIR', 'SWIR1', 'SWIR2')
+names(landsat)
+## [1] "ultra.blue" "blue"       "green"      "red"        "NIR"
+## [6] "SWIR1"      "SWIR2"
+
+
+# Using extent
+extent(landsat)
+##class      : Extent 
+##xmin       : 487485 
+##xmax       : 723615 
+##ymin       : -583215 
+##ymax       : -375285 
+e <- extent(624387, 635752, -573215, -365285)
+# crop landsat by the extent
+landsatcrop <- crop(landsat, e)
+
+##Interactive selection from the image is also possible.
+##Use ``drawExtent`` and ``drawPoly`` to select an area of interest
+
+drawExtent(show=TRUE, col="red")
+drawPoly(sp= true, col = "red")
