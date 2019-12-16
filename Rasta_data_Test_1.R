@@ -96,12 +96,87 @@ extent(landsat)
 ##xmax       : 723615 
 ##ymin       : -583215 
 ##ymax       : -375285 
-e <- extent(624387, 635752, -573215, -365285)
-# crop landsat by the extent
-landsatcrop <- crop(landsat, e)
 
 ##Interactive selection from the image is also possible.
 ##Use ``drawExtent`` and ``drawPoly`` to select an area of interest
 
 drawExtent(show=TRUE, col="red")
 drawPoly(sp= true, col = "red")
+
+e <- extent(586289, 594793, -529714, -507035)
+## crop landsat by the extent
+landsatcrop <- crop(landsat, e)
+
+
+##################################################################################
+
+
+library(raster)
+raslist <- paste0("C:/Users/JELG02/Documents/Clase_de_R/data/Landsat/p224r63/LT52240632006164CUB03.tar/LT52240632006164CUB03_B", 1:7, ".tif")
+landsat <- stack(raslist)
+landsatRGB <- landsat[[c(4,3,2)]]
+landsatFCC <- landsat[[c(5,4,3)]]
+
+##Vegetation indices
+##Let's define a general function for a ratio based (vegetation) index.
+##In the function below, img is a mutilayer Raster* object and i and k are 
+##the indices of the layers (layer numbers) used to compute the vegetation index.
+
+vi <- function(img, k, i) {
+  bk <- img[[k]]
+  bi <- img[[i]]
+  vi <- (bk - bi) / (bk + bi)
+  return(vi)
+}
+# For Landsat NIR = 5, red = 4.
+ndvi <- vi(landsat, 5, 4)
+plot(ndvi, col = rev(terrain.colors(10)), main = "Landsat-NDVI")
+
+
+#An alternative way to accomplish this is like this
+
+vi2 <- function(x, y) {
+  (x - y) / (x + y)
+}
+ndvi2 <- overlay(landsat[[5]], landsat[[4]], fun=vi2)
+plot(ndvi2, col=rev(terrain.colors(10)), main="Landsat-NDVI")
+
+# view histogram of data
+hist(ndvi,
+     main = "Distribution of NDVI values",
+     xlab = "NDVI",
+     ylab= "Frequency",
+     col = "wheat",
+     xlim = c(-0.5, 1),
+     breaks = 30,
+     xaxt = 'n')
+axis(side=1, at = seq(-0.5,1, 0.05), labels = seq(-0.5,1, 0.05))
+
+##Cells with NDVI values greater than 0.4 are definitely vegetation.
+##The following operation masks all cells that are perhaps not vegetation.
+
+veg <- reclassify(ndvi, cbind(-Inf, 0.4, NA))
+plot(veg, main='Vegetation')
+
+
+##Let's map the area that corresponds to the peak between 0.25 and 0.3 in the NDVI histogram.
+
+land <- reclassify(ndvi, c(-Inf, 0.25, NA,  0.25, 0.3, 1,  0.3, Inf, NA))
+plot(land, main = 'Open Areas')
+
+##Landsat False Color Composite
+
+plotRGB(landsatRGB, r=1, g=2, b=3, axes=TRUE, stretch="lin", main="Landsat False Color Composite")
+plot(land, add=TRUE, legend=FALSE)
+
+##NDVI based thresholding
+
+vegc <- reclassify(ndvi, c(-Inf,0.25,1, 0.25,0.3,2, 0.3,0.4,3, 0.4,0.5,4, 0.5,Inf, 5))
+plot(vegc,col = rev(terrain.colors(4)), main = 'NDVI based thresholding')
+
+##NIR-Red plot
+
+set.seed(1)
+sr <- sampleRandom(landsat, 10000)
+plot(sr[,c(4,5)], main = "NIR-Red plot")
+
