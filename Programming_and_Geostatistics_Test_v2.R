@@ -3,7 +3,7 @@ install.packages("rgdal")
 install.packages("reshape")
 install.packages("scales")
 
-
+library(dplyr)
 library(raster)
 library(rgdal)
 library(reshape)
@@ -66,12 +66,12 @@ tmp5 <- sort(names[sequence])
 names(brick_list) <- names[sequence]
 brick_list = brick_list[order(names(brick_list))]
 
-brick_list
 
 setwd("B:/Image_Landsat/Landsat_raster/")
 
 for (i in 1:length(brick_list)){
-  final_raster <- writeRaster(brick_list[[i]], filename=n[i],format="GTiff", overwrite=TRUE)
+  final_raster <- writeRaster(brick_list[[i]], filename = names[i],
+                              format="GTiff",overwrite=TRUE)
 }
 
 Bandnames <- c("Pixel_QA","Rad_QA","Aerosols","B1","B2","B3","B4","B5","B6","B7")
