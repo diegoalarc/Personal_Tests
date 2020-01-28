@@ -2,6 +2,9 @@ install.packages("raster")
 install.packages("rgdal")
 install.packages("reshape")
 install.packages("scales")
+install.packages("lattice")
+
+
 
 library(tidyverse)
 library(dplyr)
@@ -11,6 +14,7 @@ library(reshape)
 library(scales)
 library(rgeos)
 library(RStoolbox)
+library(lattice)
 
 ##create the path where are all the images Landsat8 we will use.
 IMAGE_path <- "B:/Image_Landsat/TIF_Image"
@@ -47,6 +51,13 @@ for (i in 1:length(roi_list)){
   names <- append(names,tmp3)
 }
 
+#################
+
+
+
+
+#################
+
 
 sequence <- seq(1,length(tmp)-9,10)
 brick_list <- list()
@@ -65,16 +76,16 @@ esp <- list()
 RGB_img <- list()
 t_img <- list()
 
+
 for (i in 1:length(brick_list)){
 esp <- brick(brick_list[i])  
 ndwi <- ((esp[[6]]-esp[[8]])/(esp[[6]]+esp[[8]]))
 ndwi[ndwi>1] <- 1; ndwi[ndwi< (-1)] <- (-1)
-
-
+####RGB Brick####
 RGB_img <- brick((esp[[5]]),(esp[[6]]),(esp[[7]]))
-
+###########
 n_list <- append(n_list, ndwi)
-
+####RGB List#####
 t_img <- append(t_img,RGB_img)
 }
 
@@ -83,29 +94,78 @@ names(n_list) <- names[sequence]
 n_list = n_list[order(names(n_list))]
 
 
-setwd("B:/Image_Landsat/NDWI/")
+setwd("C:/Image_Landsat/NDWI/")
 
 for (i in 1:length(n_list)){
   writeRaster(n_list[[i]],filename = names(n_list[i]),format="GTiff",overwrite=TRUE)
 }
 
+#### Change Name ########
+
+setwd("C:/Image_Landsat/test/")
+
+for (i in 1:length(n_list)){
+#Sample image name
+nm <- n_list[i]
+
+#Extract year
+yr <- substr(names(nm), start=18, stop=21)
+
+#Extract month of year
+mt <- substr(names(nm), start=22, stop=23)
+#Extract day of year
+dy <- substr(names(nm), start=24, stop=25)
+
+writeRaster(n_list[[i]], filename=paste0(yr,'-',mt,'-',dy), format='GTiff', overwrite=T) 
+}
+##### GLCM Analysis ####
+
+library(glcm)
+
+for (i in 1:length(brick_list)){
+  
+textureresult <- glcm(n_list[[7]])
+
+
+plot(textureresult$glcm_variance)
+}
+
+###############RGB DATA#######
+
+setwd("B:/Image_Landsat/RGB/")
+
+for (i in 1:length(t_img)){
+img_rgb <-  writeRaster(t_img[[i]],filename = names(n_list[i]),format="GTiff",overwrite=TRUE)
+}
+###############  Supervised classification ###############
 
 td <- readOGR("C:/Users/JELG02/OneDrive/Uni-Wue/1er_Semestre/MB2_Introduction_to_Programming_and_Geostatistics/Final_Project/Training_Area_utm.shp")
 vd <- readOGR("C:/Users/JELG02/OneDrive/Uni-Wue/1er_Semestre/MB2_Introduction_to_Programming_and_Geostatistics/Final_Project/Val_data_utm.shp")
 
 sc <- vector()
 data_sc <- list()
+classification_data <- list()
+classification_data2 <- list()
 
 for (i in 1:length(n_list)){
 
-sc <- superClass(n_list[[i]], trainData = td,
-                 responseCol = "Class_name",
+sc <- superClass(n_list[[i]], trainData = td, responseCol="id",
                  model = "rf", valData = vd)
 data_sc[[i]] <- sc$map
+
+classification_data <- brick(data_sc[[i]])
+classification_data2 <- append(classification_data2,classification_data)
+
 rm(sc)
 }
 
-plot(data_sc)
+setwd("B:/Image_Landsat/Test_Area/")
+
+for (i in 1:length(n_list)){
+  img_superclass <-  writeRaster(classification_data2[[i]],filename = names(n_list[i]),format="GTiff",overwrite=TRUE)
+}
+
+plot(classification_data2[[2]])
 
 
 ################# Unsupervised classification########
@@ -120,6 +180,7 @@ for(i in 1:length(n_list)){
 
 plot(list_2[[3]])
 
+rasterEntropy(list_2[3])
 
 #############################
 
@@ -149,15 +210,3 @@ values <- click(NDVI.stack, n=1)
 timeseries <- data.frame(year = c(2000, 2005, 2010, 2015),
                          values = values[1, ])
 plot(timeseries, type="l")
-
-######################## SLopeAspect
-
-slope <- list()
-n_layer <- list()
-
-for (i in 1:length(n_list)){
-n_layer <- brick(n_list[i])
-slope_file <- terrain(n_layer[[1]], opt="slope", unit="tangent", neighbors=4)
-slope <- append(slope,slope_file)
-}
-
