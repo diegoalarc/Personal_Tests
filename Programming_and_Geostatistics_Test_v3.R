@@ -3,7 +3,7 @@ install.packages("rgdal")
 install.packages("reshape")
 install.packages("scales")
 install.packages("lattice")
-
+install.packages("ggplot2")
 
 
 library(tidyverse)
@@ -15,6 +15,8 @@ library(scales)
 library(rgeos)
 library(RStoolbox)
 library(lattice)
+library(ggplot2)
+
 
 ##create the path where are all the images Landsat8 we will use.
 IMAGE_path <- "B:/Image_Landsat/TIF_Image"
@@ -76,22 +78,37 @@ esp <- brick(brick_list[i])
 ndwi <- ((esp[[6]]-esp[[8]])/(esp[[6]]+esp[[8]]))
 ndwi[ndwi>1] <- 1; ndwi[ndwi< (-1)] <- (-1)
 ####Water classfy####
-water_img <- reclassify(ndwi, cbind(-Inf, 0.2, NA))
+water_img <- reclassify(ndwi, c(-Inf, 0, NA, 0, Inf, 1))
 ###########
 n_list <- append(n_list, ndwi)
 ####RGB List#####
 t_img <- append(t_img,water_img)
 }
 
-
-
 tmp9 <- sort(names[sequence])
 names(n_list) <- names[sequence]
 n_list = n_list[order(names(n_list))]
 names(t_img) <- names[sequence]
 t_img = t_img[order(names(t_img))]
+tmp10 <- list()
 
 ###############################
+setwd("C:/Image_Landsat/NDWI/")
+
+for (i in 1:length(n_list)){
+  #Sample image name
+  nm <- n_list[i]
+  #Extract year
+  yr <- substr(names(nm), start=18, stop=21)
+  #Extract month of year
+  mt <- substr(names(nm), start=22, stop=23)
+  #Extract day of year
+  dy <- substr(names(nm), start=24, stop=25)
+  
+  s_list <- writeRaster(n_list[[i]], filename=paste0(yr,'-',mt,'-',dy), format='GTiff', overwrite=T, options = c('TFW=YES')) 
+  tmp10 <- append(tmp10,s_list)
+  rm(nm,yr,mt,dy)
+}
 
 setwd("c:/Image_Landsat/test/")
 
@@ -105,13 +122,15 @@ for (i in 1:length(t_img)){
   #Extract day of year
   dy <- substr(names(nm), start=24, stop=25) 
   
-  img_fn <-  writeRaster(t_img[[i]],filename=paste0('Water','_',yr,'-',mt,'-',dy),format="GTiff",overwrite=TRUE)
+  img_fn <-  writeRaster(t_img[[i]],filename=paste0(yr,'-',mt,'-',dy),format="GTiff",overwrite=TRUE, options = c('TFW=YES'))
   rm(nm,yr,mt,dy)
 }
 
+#####cambiar NDWI por test o viceversa####
+
 tmp_Stack <- list()
 
-IMAGE_path2 <- "C:/Image_Landsat/NDWI/"
+IMAGE_path2 <- "C:/Image_Landsat/test/"
 ##Load all the images Landsat8 in one list.
 all_IMAGE2 <- list.files(IMAGE_path2,
                          full.names = TRUE,
@@ -119,24 +138,69 @@ all_IMAGE2 <- list.files(IMAGE_path2,
 tmp_Stack <- stack(all_IMAGE2)
 
 # Define dataframe and fill it with the dates
-my_years <- c(names(tmp_Stack))
-my_mat <- matrix(data = NA, nrow = length(my_years), ncol = 4)
+my_years <- (names(tmp_Stack))
+my_mat <- matrix(data = NA, nrow = length(my_years), ncol = 2)
 my_mat[,1] <- my_years
 my_df <- data.frame(my_mat,stringsAsFactors=FALSE)
-names(my_df) <- c("Year", "maxValue", "minValue", "Mean_NDWI")
+names(my_df) <- c("Date", "Mean_NDWI")
 
 # For-loop calculating mean of each raster and save it in data.frame
 for (i in 1:length(my_years)){
-  maxValue_layer <- c(maxValue(tmp_Stack[[i]]))
-  my_df[i,2] <- maxValue_layer
-  minValue_layer <- c(minValue(tmp_Stack[[i]]))
-  my_df[i,3] <- minValue_layer
+
   mean_layer <- c((((maxValue(tmp_Stack[[i]]))+(minValue(tmp_Stack[[i]])))/2))
-  my_df[i,4] <- mean_layer
+  my_df[i,2] <- mean_layer
   rm(maxValue_layer,minValue_layer,mean_layer,i)
 }
 
+
+#################sum pixel#####
+
+# Define dataframe and fill it with the dates
+my_years2 <- (names(tmp_Stack))
+my_mat2 <- matrix(data = NA, nrow = length(my_years2), ncol = 2)
+my_mat2[,1] <- my_years2
+my_df2 <- data.frame(my_mat2,stringsAsFactors=FALSE)
+names(my_df2) <- c("Date", "Area_Water_Body")
+
+# For-loop calculating mean of each raster and save it in data.frame
+for (i in 1:length(my_years2)){
+  
+  area_layer <- cellStats(tmp_Stack[[i]], 'sum')
+  my_df2[i,2] <- ((area_layer*9)/10000)
+  rm(area_layer,i)
+}
+
 ###########################
+
+# optional: check data frame
+# my_df
+setwd("c:/Image_Landsat/test/")
+# Plot resulting dataframe and perform a regression analysis to display a trend line
+pdf("timeseries_Area_Water_Body.pdf",width=15,height=8)
+ggplot(my_df2, aes(x=Date, y=Area_Water_Body , group = 1))+
+  geom_point(size=2)+
+  geom_line()+
+  geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
+  labs(title="Time Series of Area Water Body in Aculeo Lake", 
+       x="Date", y="Area_Water_Body") +
+  theme(plot.title = element_text(hjust = 0.5))
+dev.off()
+
+
+####################################
+
+
+
+
+ndwi_df <- as.data.frame(n_stack, xy = TRUE) %>%
+  melt(id.vars = c('x','y'))
+
+ggplot(my_df) +
+  geom_histogram(aes(value)) +
+  facet_wrap(~variable)
+
+
+######################
 
 
 tmp10 <- list()
@@ -187,7 +251,7 @@ library(glcm)
 
 for (i in 1:length(brick_list)){
   
-textureresult <- glcm(n_list[[7]])
+textureresult <- glcm(n_list[[i]])
 
 
 plot(textureresult$glcm_variance)
@@ -248,8 +312,8 @@ rasterEntropy(list_2[3])
 library(ggplot2)
 
 
-setwd("B:/")
-NDVI_HARV_path <- "Image_Landsat/NDWI/"
+setwd("C:/")
+NDVI_HARV_path <- "Image_Landsat/test/"
 
 ndwi_list <- list()
 ndwi_list <- list.files(NDVI_HARV_path,
@@ -257,8 +321,7 @@ ndwi_list <- list.files(NDVI_HARV_path,
                         pattern = ".tif$")
 
 
-n_stack <- stack(ndwi_list)
-n_stack[n_stack>1] <- 1; n_stack[n_stack< (-1)] <- (-1)
+n_stack <- stack(ndwi_list[[5]])
 
 
 ndwi_df <- as.data.frame(n_stack, xy = TRUE) %>%
@@ -267,4 +330,5 @@ ndwi_df <- as.data.frame(n_stack, xy = TRUE) %>%
 ggplot(ndwi_df) +
   geom_histogram(aes(value)) +
   facet_wrap(~variable)
+
 
