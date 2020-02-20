@@ -1,11 +1,13 @@
 
 ###useful###
 library(RStoolbox)
+library(tidyverse)
+library(ggplot2)
 library(raster)
 library(rgdal)
-library(sp)
-library(tidyverse)
 library(shiny)
+library(dplyr)
+library(sp)
 
 
 setwd("c:/")
@@ -226,10 +228,6 @@ my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 #agregar info de 2019 creando un mapa de permanente y seasonal water 
 ##############
 
-
-library(shiny)
-library(ggplot2)
-library(dplyr)
 
 ui <- fluidPage(
   titlePanel("Time Series of Surface Water Body in Aculeo Lake"),
