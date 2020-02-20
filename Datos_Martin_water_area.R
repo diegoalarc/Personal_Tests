@@ -188,33 +188,102 @@ tmp_Stack3 <- stack(all_IMAGE4)
 ##################
 
 # Define dataframe and fill it with the dates
-my_years2 <- (names(tmp_Stack3))
-my_mat2 <- matrix(data = NA, nrow = length(my_years2), ncol = 4)
-my_mat2[,1] <- my_years2
+my_years <- substr(names_file, start=15, stop=18)
+my_mat <- matrix(data = "Seasonal", nrow = length(my_years), ncol = 3)
+my_mat[,1] <- my_years
+my_df <- data.frame(my_mat,stringsAsFactors=FALSE)
+
+my_mat1 <- matrix(data = "Permanent", nrow = length(my_years), ncol = 3)
+my_mat1[,1] <- my_years
+my_df1 <- data.frame(my_mat1,stringsAsFactors=FALSE)
+
+my_mat2 <- matrix(data = "Total", nrow = length(my_years), ncol = 3)
+my_mat2[,1] <- my_years
 my_df2 <- data.frame(my_mat2,stringsAsFactors=FALSE)
-names(my_df2) <- c("Date", "Area_Seasonal_Water_Body", "Area_Permanent_Water_Body", "Area_Water_Body")
+
+names(my_df) <- c("Year", "Type", "Area")
+names(my_df1) <- c("Year", "Type", "Area")
+names(my_df2) <- c("Year", "Type", "Area")
 
 # For-loop calculating mean of each raster and save it in data.frame
-for (i in 1:length(my_years2)){
-  
+for (i in 1:length(my_years)){
   area_Seasonal <- cellStats(tmp_Stack1[[i]], 'sum')
-  my_df2[i,2] <- ((area_Seasonal*9)/10000)
+  my_df[i,3] <- ((area_Seasonal*9)/10000)
   area_Permanent <- cellStats(tmp_Stack2[[i]], 'sum')
-  my_df2[i,3] <- ((area_Permanent*9)/10000)
+  my_df1[i,3] <- ((area_Permanent*9)/10000)
   area_total <- (((area_Seasonal+area_Permanent)*9)/10000)
-  my_df2[i,4] <- area_total
+  my_df2[i,3] <- area_total
   rm(area_Seasonal,area_Permanent,area_total,i)
 }
 
 
-#agregar info de 2019 creando un mapa de permanente y seasonal water 
+my_mat3 <- matrix(data = NA, nrow = (length(my_years)*3), ncol = 3)
+my_df3 <- data.frame(my_mat3,stringsAsFactors=FALSE)
+names(my_df3) <- c("Year", "Type", "Area")
+my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
+
+#agregar info de 2019 creando un mapa de permanente y seasonal water 
+##############
+
+
+library(shiny)
+library(ggplot2)
+library(dplyr)
+
+ui <- fluidPage(
+  titlePanel("Time Series of Surface Water Body in Aculeo Lake"),
+  sidebarLayout(position = "right",
+    sidebarPanel(
+      sliderInput("yearsInput", "Choose Years between", 2000, 2018, c(2000, 2001)),
+      radioButtons("typeInput", "Choose your Time Series Period",
+                   choices = c("Permanent", "Seasonal", "Total"),
+                   selected = "Total")
+          ),
+    mainPanel(position = "left",
+      plotOutput("coolplot"), 
+      br(), br(), br(),
+      tableOutput("results"))
+  )
+)
+
+server <- function(input, output) {
+ 
+  output$coolplot <- renderPlot({
+    filtered <-
+      my_df3 %>%
+      filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
+             Type == input$typeInput,
+                  )
+
+    ggplot(filtered, aes(Year, y=as.numeric(Area), group = input$typeInput)) +
+      geom_line(aes(colour = Type), position = "stack", size = .5) +
+      geom_point(aes(colour = Type), position = "stack", size = 2) +
+      geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
+      labs(x="Date", y="Area Water Body (KM2)")
+    
+
+    })
+
+  output$results <- renderTable({
+    t(filtered<-
+      my_df3 %>%
+      filter(Year >= input$yearsInput[1],
+             Year <= input$yearsInput[2],
+             Type == input$typeInput,
+      ))
+  })
+  }
+shinyApp(ui = ui, server = server)
+
+
+###############################
 
 # my_df
 setwd("c:/Data/")
 # Plot resulting dataframe and perform a regression analysis to display a trend line
 pdf("timeseries_Area_Water_Body.pdf",width=15,height=8)
-ggplot(my_df2, aes(x=Date, y=as.numeric(Area_Water_Body), group = 1))+
+ggplot(my_df3, aes(x=Date, y=as.numeric(Area), group = 1))+
   geom_point(size=2)+
   geom_line()+
   geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
