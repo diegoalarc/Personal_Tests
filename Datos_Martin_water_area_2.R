@@ -18,8 +18,7 @@ setwd("c:/")
 dir.create("Data")
 
 setwd("c:/Data/")
-dir.create("GIF")
-dir.create("Binary")
+dir.create("www")
 dir.create("Permanent_Water")
 dir.create("Seasonal_Water")
 dir.create("Total_Water")
@@ -159,7 +158,7 @@ for (i in 1:length(t_water)){
   #  Extract month of year
   yr <- substr(names_file[i], start=15, stop=18)
   
-  s_list <- writeRaster(t_water[[i]], filename=paste0(Country,yr), format='GTiff', overwrite=T) 
+  s_list <- writeRaster(t_water[[i]], filename=paste0(Country,"Total_",yr), format='GTiff', overwrite=T) 
   temporal7 <- append(temporal7,s_list)
   rm(Country,yr)
 }
@@ -235,11 +234,11 @@ names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
 #######
-
+reswd <- "c:/Data/www/"
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
 setwd("c:/Data/Seasonal_Water_Color/")
 for (i in 1:dim(tmp_Stack1)[3]){
-  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 380, height = 300)
   
   
   plot(tmp_Stack1[[i]],
@@ -250,7 +249,7 @@ for (i in 1:dim(tmp_Stack1)[3]){
   
   dev.off()
 }
-setwd("c:/Data/GIF/")
+setwd("c:/Data/www/")
 list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
@@ -262,7 +261,7 @@ list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names =
 if(!file.exists(paste0(reswd,"Permanent.gif"))) {
 setwd("c:/Data/Permanent_Water_Color/")
 for (i in 1:dim(tmp_Stack2)[3]){
-  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 380, height = 300)
   
   
   plot(tmp_Stack2[[i]],
@@ -273,8 +272,8 @@ for (i in 1:dim(tmp_Stack2)[3]){
   
   dev.off()
 }
-setwd("c:/Data/GIF/")
-list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
+  setwd("c:/Data/www/")
+  list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
   image_animate(fps=1) %>% # animates, can opt for number of loops
@@ -285,7 +284,7 @@ list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names 
 if(!file.exists(paste0(reswd,"Total.gif"))) {
 setwd("c:/Data/Total_Water_Color/")
 for (i in 1:dim(tmp_Stack3)[3]){
-  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 380, height = 300)
   
   
   plot(tmp_Stack3[[i]],
@@ -296,19 +295,23 @@ for (i in 1:dim(tmp_Stack3)[3]){
   
   dev.off()
 }
-setwd("c:/Data/GIF/")
-list.files(path="c:/Data/Total_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
+  setwd("c:/Data/www/")
+  list.files(path="c:/Data/Total_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
   image_animate(fps=1) %>% # animates, can opt for number of loops
   image_write("Total.gif") # write to current dir
 }
 
+#install.packages("shinyFiles")
+
 ###########Shiny######
+
 library(ggplot2)
 library(shiny)
 library(gganimate)
 library(magick)
+
 
 ui <- fluidPage(
   theme = shinythemes::shinytheme("superhero"),
@@ -319,19 +322,23 @@ ui <- fluidPage(
                   radioButtons("typeInput", "Choose a type of water:",
                                choices = c("Permanent", "Seasonal", "Total"),
                                selected = "Total")
-                  )
-                ),
+
+                  ),
                 mainPanel(position = "left",
-                          plotOutput("coolplot"), 
+                          plotOutput("coolplot"),
                           br(), br(),
                           tableOutput("results"),
-                          br(), br(),
-                          plotOutput("myImage")
-#uiOutput(outputId = "my_ui"))
+                          br(), br()
+                )),
+  sidebarLayout(position = "left",
+                imageOutput("preImage"),
+                br(), br(),
+                position = "right",
+                imageOutput("Image"),
+                br(), br())
 )
 
 server <- function(input, output, session) {
-  
   
   output$coolplot <- renderPlot({
     filtered <-
@@ -349,6 +356,7 @@ server <- function(input, output, session) {
     
     
   })
+###############################  
   
   output$results <- renderTable({
     t(filtered<-
@@ -359,56 +367,32 @@ server <- function(input, output, session) {
         ))
   },align = 'c', rownames = TRUE, digits = 2, colnames = FALSE, spacing = 'xs')
   
-  
-  
-  
-  output$myImage<-renderImage({
+  ####################################
+
+  output$preImage <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('c:/Data/www',
+                                        paste(input$typeInput, '.gif', sep='')))
     
-      filter(Type == input$typeInput)
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         alt = paste(input$typeInput))
     
-    filename <- file.path("c:/Data/GIF",paste0(input$typeInput, '.gif', sep=''))
-
-    list(src = filename)
-    filetype = 'image/gif'
-  }, deleteFile = T)
+  }, deleteFile = FALSE)
   
-  }
   
-  # initialize reactive values
-
-  
-#  output$image2 <- renderImage({
+  output$Image <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('c:/Data',
+                                        paste(input$typeInput,"_Water_Color/","Chile_",input$typeInput,"_",input$yearsInput[2], '.png', sep='')))
     
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         alt = paste(input$typeInput))
+    
+  }, deleteFile = FALSE)
 
-#      if (is.null(input$typeInput))
-#        return(NULL)
-#      
-#      if (input$typeInput == "Permanent") {
-#        return(list(
-#          src = "c:/Data/GIF/",
-#          contentType = "image/png",
-#        ))
-#      } else if (input$typeInput == "Seasonal") {
-#        return(list(
-#          src = "c:/Data/GIF/",
-#          filetype = "image/jpeg",
-#        ))
-#      } else if (input$typeInput == "Total") {
-#        return(list(
-#          src = "c:/Data/GIF/",
-#          filetype = "image/jpeg",
-#        ))
-#      }
-#    }, deleteFile = FALSE)
-#  }
-
-
+}
 shinyApp(ui = ui, server = server)
-
-
-
-
-
-
 
 
