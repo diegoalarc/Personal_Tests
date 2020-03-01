@@ -6,6 +6,8 @@ library(animation)
 library(RStoolbox)
 library(tidyverse)
 library(magrittr)
+library(ggplot2)
+library(magick)
 library(raster)
 library(rgdal)
 library(dplyr)
@@ -13,12 +15,11 @@ library(sp)
 
 
 
-
 setwd("c:/")
 dir.create("Data")
 
 setwd("c:/Data/")
-dir.create("www")
+dir.create("GIF")
 dir.create("Permanent_Water")
 dir.create("Seasonal_Water")
 dir.create("Total_Water")
@@ -234,11 +235,15 @@ names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
 #######
-reswd <- "c:/Data/www/"
+#install.packages("GISTools")
+library(maps)
+library(GISTools) 
+
+reswd <- "c:/Data/GIF/"
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
 setwd("c:/Data/Seasonal_Water_Color/")
 for (i in 1:dim(tmp_Stack1)[3]){
-  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 380, height = 300)
+  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 480, height = 400)
   
   
   plot(tmp_Stack1[[i]],
@@ -246,10 +251,12 @@ for (i in 1:dim(tmp_Stack1)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
 }
-setwd("c:/Data/www/")
+setwd("c:/Data/GIF/")
 list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
@@ -261,7 +268,7 @@ list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names =
 if(!file.exists(paste0(reswd,"Permanent.gif"))) {
 setwd("c:/Data/Permanent_Water_Color/")
 for (i in 1:dim(tmp_Stack2)[3]){
-  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 380, height = 300)
+  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 480, height = 400)
   
   
   plot(tmp_Stack2[[i]],
@@ -269,10 +276,12 @@ for (i in 1:dim(tmp_Stack2)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
 }
-  setwd("c:/Data/www/")
+  setwd("c:/Data/GIF/")
   list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
@@ -284,7 +293,7 @@ for (i in 1:dim(tmp_Stack2)[3]){
 if(!file.exists(paste0(reswd,"Total.gif"))) {
 setwd("c:/Data/Total_Water_Color/")
 for (i in 1:dim(tmp_Stack3)[3]){
-  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 380, height = 300)
+  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 480, height = 400)
   
   
   plot(tmp_Stack3[[i]],
@@ -292,10 +301,12 @@ for (i in 1:dim(tmp_Stack3)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
 }
-  setwd("c:/Data/www/")
+  setwd("c:/Data/GIF/")
   list.files(path="c:/Data/Total_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
   image_read() %>% # reads each path file
   image_join() %>% # joins image
@@ -309,33 +320,29 @@ for (i in 1:dim(tmp_Stack3)[3]){
 
 library(ggplot2)
 library(shiny)
-library(gganimate)
-library(magick)
 
 
 ui <- fluidPage(
   theme = shinythemes::shinytheme("superhero"),
   titlePanel("Time Series of Surface Water Body in Aculeo Lake"),
-  sidebarLayout(position = "right",
+    sidebarLayout(position = "right",
                 sidebarPanel(
                   sliderInput("yearsInput", "Choose Years between:", 2000, 2018, c(2000, 2001)),
                   radioButtons("typeInput", "Choose a type of water:",
                                choices = c("Permanent", "Seasonal", "Total"),
-                               selected = "Total")
-
+                               selected = "Total"),
                   ),
                 mainPanel(position = "left",
-                          plotOutput("coolplot"),
-                          br(), br(),
-                          tableOutput("results"),
-                          br(), br()
+                          plotOutput("coolplot")
+                          #tableOutput("results"),
                 )),
-  sidebarLayout(position = "left",
-                imageOutput("preImage"),
-                br(), br(),
-                position = "right",
-                imageOutput("Image"),
-                br(), br())
+
+wellPanel(fluidRow(         column(6,plotOutput(outputId="preImage", width="480px",height="400px")),  
+                            column(6,plotOutput(outputId="Image", width="480px",height="400px")),
+                            )
+),fluidRow(column(6,tableOutput("results"))
+  
+)
 )
 
 server <- function(input, output, session) {
@@ -371,12 +378,13 @@ server <- function(input, output, session) {
 
   output$preImage <- renderImage({
     # When input$n is 3, filename is ./images/image3.jpeg
-    filename <- normalizePath(file.path('c:/Data/www',
+    filename <- normalizePath(file.path('c:/Data/GIF',
                                         paste(input$typeInput, '.gif', sep='')))
     
     # Return a list containing the filename and alt text
     list(src = filename,
          alt = paste(input$typeInput))
+    
     
   }, deleteFile = FALSE)
   
