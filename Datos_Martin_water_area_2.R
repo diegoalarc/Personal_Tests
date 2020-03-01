@@ -251,7 +251,7 @@ for (i in 1:dim(tmp_Stack1)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
   north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
@@ -276,7 +276,7 @@ for (i in 1:dim(tmp_Stack2)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
   north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
@@ -301,7 +301,7 @@ for (i in 1:dim(tmp_Stack3)[3]){
        legend=FALSE,
        col = c("green", "blue"),
        breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.10, metric = TRUE, ratio=FALSE)  
+  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
   north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
   
   dev.off()
@@ -332,17 +332,13 @@ ui <- fluidPage(
                                choices = c("Permanent", "Seasonal", "Total"),
                                selected = "Total"),
                   ),
-                mainPanel(position = "left",
-                          plotOutput("coolplot")
-                          #tableOutput("results"),
-                )),
+                mainPanel(  tabsetPanel(
+                  tabPanel("Area v/s Years", plotOutput("coolplot")),
+                  tabPanel("Timeseries for:", plotOutput(outputId="preImage", width="480px",height="400px")),
+                  tabPanel("Image for the Year and Type", plotOutput(outputId="Image", width="480px",height="400px")),
+                  tabPanel("Table",tableOutput("results")))
 
-wellPanel(fluidRow(         column(6,plotOutput(outputId="preImage", width="480px",height="400px")),  
-                            column(6,plotOutput(outputId="Image", width="480px",height="400px")),
-                            )
-),fluidRow(column(6,tableOutput("results"))
-  
-)
+                ))
 )
 
 server <- function(input, output, session) {
@@ -366,13 +362,13 @@ server <- function(input, output, session) {
 ###############################  
   
   output$results <- renderTable({
-    t(filtered<-
+    (filtered<-
         my_df3 %>%
         filter(Year >= input$yearsInput[1],
                Year <= input$yearsInput[2],
                Type == input$typeInput
         ))
-  },align = 'c', rownames = TRUE, digits = 2, colnames = FALSE, spacing = 'xs')
+  },align = 'c', rownames = FALSE, digits = 2, colnames = TRUE, spacing = 'xs')
   
   ####################################
 
