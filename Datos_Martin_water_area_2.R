@@ -1,8 +1,4 @@
 
-if(!require(shinythemes)){
-  install.packages("shinythemes")
-  library(shinythemes)
-}
 if(!require(gganimate)){
   install.packages("gganimate")
   library(gganimate)
@@ -38,10 +34,6 @@ if(!require(raster)){
 if(!require(rgdal)){
   install.packages("rgdal")
   library(rgdal)
-}
-if(!require(dplyr)){
-  install.packages("dplyr")
-  library(dplyr)
 }
 if(!require(sp)){
   install.packages("sp")
@@ -348,6 +340,10 @@ if(!require(ggplot2)){
 if(!require(shiny)){
   install.packages("shiny")
   library(shiny)
+}
+if(!require(shinythemes)){
+  install.packages("shinythemes")
+  library(shinythemes)
 }
 
 
