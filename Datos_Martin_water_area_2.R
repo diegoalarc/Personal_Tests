@@ -1,18 +1,52 @@
 
-library(shinythemes)
-library(gganimate)
-library(rasterVis)
-library(animation)
-library(RStoolbox)
-library(tidyverse)
-library(magrittr)
-library(ggplot2)
-library(magick)
-library(raster)
-library(rgdal)
-library(dplyr)
-library(sp)
-
+if(!require(shinythemes)){
+  install.packages("shinythemes")
+  library(shinythemes)
+}
+if(!require(gganimate)){
+  install.packages("gganimate")
+  library(gganimate)
+}
+if(!require(rasterVis)){
+  install.packages("rasterVis")
+  library(rasterVis)
+}
+if(!require(animation)){
+  install.packages("animation")
+  library(animation)
+}
+if(!require(RStoolbox)){
+  install.packages("RStoolbox")
+  library(RStoolbox)
+}
+if(!require(tidyverse)){
+  install.packages("tidyverse")
+  library(tidyverse)
+}
+if(!require(magrittr)){
+  install.packages("magrittr")
+  library(magrittr)
+}
+if(!require(magick)){
+  install.packages("magick")
+  library(magick)
+}
+if(!require(raster)){
+  install.packages("raster")
+  library(raster)
+}
+if(!require(rgdal)){
+  install.packages("rgdal")
+  library(rgdal)
+}
+if(!require(dplyr)){
+  install.packages("dplyr")
+  library(dplyr)
+}
+if(!require(sp)){
+  install.packages("sp")
+  library(sp)
+}
 
 
 setwd("c:/")
@@ -78,28 +112,22 @@ proj4string(sps) = CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs8
 aculeo_extent <- sps
 
 #Create a List of the ROI.
-temporal2 <- list()
 crop_list <- list()
 
 for (i in 1:length(temporal)){
-  temporal2 <- crop(temporal[[i]],aculeo_extent)
-  crop_list <- append(crop_list,temporal2)
+  crop_list[[i]] <- crop(temporal[[i]],aculeo_extent)
 }
 
-temporal3 <- vector(mode="character")
 names_file <- vector(mode="character")
 
 for (i in 1:length(crop_list)){
-  temporal3 <- names(crop_list[[i]])
-  names_file <- append(names_file,temporal3)
+  names_file[[i]] <- names(crop_list[[i]])
 }
 
 brick_list <- list()
-temporal4 <- list()
 
 for (i in 1:length(crop_list)){
-  temporal4 <- brick(crop_list[[i]])
-  brick_list <- append(brick_list, temporal4)
+  brick_list[[i]] <- brick(crop_list[[i]])
 }
 
 t_Seasonal <- list()
@@ -110,15 +138,11 @@ water <- list()
 for (i in 1:length(brick_list)){
   Water <- brick(brick_list[i])  
   #  Water classfy
-  water_Seasonal <- reclassify(Water, c(0, 1, NA, 1, 2, 1, 2, 3, NA))
-  Water_Permanent <- reclassify(Water, c(0, 2, NA, 2, 3, 1))
-  total_water <- reclassify(Water, c(0, 1, NA, 1, 3, 1))
-  t_Seasonal <- append(t_Seasonal,water_Seasonal)
-  t_Permanent <- append(t_Permanent,Water_Permanent)
-  t_water <- append(t_water,total_water)
+  t_Seasonal[[i]] <- reclassify(Water, c(0, 1, NA, 1, 2, 1, 2, 3, NA))
+  t_Permanent[[i]] <- reclassify(Water, c(0, 2, NA, 2, 3, 1))
+  t_water[[i]] <- reclassify(Water, c(0, 1, NA, 1, 3, 1))
 }
 
-temporal5 <- list()
 
 setwd("C:/Data/Seasonal_Water/")
 
@@ -129,11 +153,9 @@ for (i in 1:length(t_Seasonal)){
   yr <- substr(names_file[i], start=15, stop=18)
   
   s_list <- writeRaster(t_Seasonal[[i]], filename=paste0(Country,"Seasonal_",yr), format='GTiff', overwrite=T) 
-  temporal5 <- append(temporal5,s_list)
   rm(Country,yr)
 }
 
-temporal6 <- list()
 
 setwd("C:/Data/Permanent_Water/")
 
@@ -144,12 +166,9 @@ for (i in 1:length(t_Permanent)){
   yr <- substr(names_file[i], start=15, stop=18)
   
   s_list <- writeRaster(t_Permanent[[i]], filename=paste0(Country,"Permanent_",yr), format='GTiff', overwrite=T) 
-  temporal6 <- append(temporal6,s_list)
   rm(Country,yr)
 }
 
-
-temporal7 <- list()
 
 setwd("C:/Data/Total_Water/")
 
@@ -160,7 +179,6 @@ for (i in 1:length(t_water)){
   yr <- substr(names_file[i], start=15, stop=18)
   
   s_list <- writeRaster(t_water[[i]], filename=paste0(Country,"Total_",yr), format='GTiff', overwrite=T) 
-  temporal7 <- append(temporal7,s_list)
   rm(Country,yr)
 }
 
@@ -235,9 +253,16 @@ names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
 #######
-#install.packages("GISTools")
-library(maps)
-library(GISTools) 
+
+if(!require(maps)){
+  install.packages("maps")
+  library(maps)
+}
+if(!require(GISTools)){
+  install.packages("GISTools")
+  library(GISTools)
+}
+
 
 reswd <- "c:/Data/GIF/"
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
@@ -314,12 +339,16 @@ for (i in 1:dim(tmp_Stack3)[3]){
   image_write("Total.gif") # write to current dir
 }
 
-#install.packages("shinyFiles")
 
 ###########Shiny######
-
-library(ggplot2)
-library(shiny)
+if(!require(ggplot2)){
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+if(!require(shiny)){
+  install.packages("shiny")
+  library(shiny)
+}
 
 
 ui <- fluidPage(
