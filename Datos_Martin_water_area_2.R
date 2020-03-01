@@ -349,6 +349,14 @@ if(!require(shiny)){
   install.packages("shiny")
   library(shiny)
 }
+if(!require(GISTools)){
+  install.packages("GISTools")
+  library(GISTools)
+}
+if(!require(maps)){
+  install.packages("maps")
+  library(maps)
+}
 
 
 ui <- fluidPage(
