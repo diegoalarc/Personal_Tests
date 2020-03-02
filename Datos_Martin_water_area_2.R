@@ -349,22 +349,51 @@ if(!require(shinythemes)){
 
 ui <- fluidPage(
   theme = shinythemes::shinytheme("superhero"),
-  titlePanel("Time Series of Surface Water Body in Aculeo Lake"),
-    sidebarLayout(position = "right",
-                sidebarPanel(
-                  sliderInput("yearsInput", "Choose Years between:", 2000, 2018, c(2000, 2001)),
-                  radioButtons("typeInput", "Choose a type of water:",
-                               choices = c("Permanent", "Seasonal", "Total"),
-                               selected = "Total"),
-                  ),
-                mainPanel(  tabsetPanel(
-                  tabPanel("Area v/s Years", plotOutput("coolplot")),
-                  tabPanel("Timeseries for:", plotOutput(outputId="preImage", width="480px",height="400px")),
-                  tabPanel("Image for the Year and Type", plotOutput(outputId="Image", width="480px",height="400px")),
-                  tabPanel("Table",tableOutput("results")))
-
-                ))
-)
+  navbarPage("Time Series of Surface Water Body in Aculeo Lake",
+             tabPanel("Area v/s Years",
+                      sidebarLayout(position = "left",
+                                    sidebarPanel(
+                                      sliderInput("yearsInput", "Choose Years between:", 2000, 2018, c(2000, 2001)),
+                                      radioButtons("typeInput", "Choose a type of water:",
+                                                   choices = c("Permanent", "Seasonal", "Total"),
+                                                   selected = "Total")
+                                    ),
+                                    mainPanel(plotOutput("coolplot")))
+             ),
+             
+             tabPanel("Timeseries representation in a GIF",
+                      sidebarLayout(position = "left",
+                                    sidebarPanel(
+                                      radioButtons("typeInput1", "Choose a type of water:",
+                                                   choices = c("Permanent", "Seasonal", "Total"),
+                                                   selected = "Total")
+                                    ),
+                                    mainPanel(plotOutput(outputId="preImage", width="480px",height="400px")))
+             ),
+             
+             tabPanel("Image for the Year and Type",
+                      sidebarLayout(position = "left",
+                                    sidebarPanel(
+                                      sliderInput("yearsInput2", "Choose Years between:", 2000, 2018, value = 2000),
+                                      radioButtons("typeInput2", "Choose a type of water:",
+                                                   choices = c("Permanent", "Seasonal", "Total"),
+                                                   selected = "Total")
+                                    ),
+                                    mainPanel(plotOutput(outputId="Image", width="480px",height="400px")))
+             ),
+             
+             tabPanel("Table",
+                      sidebarLayout(position = "left",
+                                    sidebarPanel(
+                                      sliderInput("yearsInput3", "Choose Years between:", 2000, 2018, c(2000, 2001)),
+                                      checkboxGroupInput("typeInput3", "Choose a type of water:",
+                                                         choices = c("Permanent", "Seasonal", "Total"),
+                                                         selected = "Total")
+                                    ),
+                                    mainPanel(tableOutput("results"))
+                      ))
+             
+  ))
 
 server <- function(input, output, session) {
   
@@ -384,44 +413,45 @@ server <- function(input, output, session) {
     
     
   })
-###############################  
   
-  output$results <- renderTable({
-    (filtered<-
-        my_df3 %>%
-        filter(Year >= input$yearsInput[1],
-               Year <= input$yearsInput[2],
-               Type == input$typeInput
-        ))
-  },align = 'c', rownames = FALSE, digits = 2, colnames = TRUE, spacing = 'xs')
+  ########################################
   
-  ####################################
-
   output$preImage <- renderImage({
     # When input$n is 3, filename is ./images/image3.jpeg
     filename <- normalizePath(file.path('c:/Data/GIF',
-                                        paste(input$typeInput, '.gif', sep='')))
+                                        paste(input$typeInput1, '.gif', sep='')))
     
     # Return a list containing the filename and alt text
     list(src = filename,
-         alt = paste(input$typeInput))
+         alt = paste(input$typeInput1))
     
     
   }, deleteFile = FALSE)
   
+  #################################################
   
   output$Image <- renderImage({
     # When input$n is 3, filename is ./images/image3.jpeg
     filename <- normalizePath(file.path('c:/Data',
-                                        paste(input$typeInput,"_Water_Color/","Chile_",input$typeInput,"_",input$yearsInput[2], '.png', sep='')))
+                                        paste(input$typeInput2,"_Water_Color/","Chile_",input$typeInput2,"_",input$yearsInput2, '.png', sep='')))
     
     # Return a list containing the filename and alt text
     list(src = filename,
-         alt = paste(input$typeInput))
+         alt = paste(input$typeInput2))
     
   }, deleteFile = FALSE)
-
+  
+  ###############################  
+  
+  output$results <- renderTable({
+    (filtered<-
+       my_df3 %>%
+       filter(Year >= input$yearsInput3[1],
+              Year <= input$yearsInput3[2],
+              Type == input$typeInput3
+       ))
+  },align = 'c', rownames = FALSE, digits = 2, colnames = TRUE, spacing = 'xs')
+  
+  ####################################
 }
 shinyApp(ui = ui, server = server)
-
-
