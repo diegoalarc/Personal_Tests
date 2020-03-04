@@ -1,3 +1,26 @@
+# ###########
+# download and display temperature and precipitation for Germany
+# created just for teaching purpose - not for scientific analysis! 100% accuracy not ensured
+# learning goal: download data, convert them, analyse spatio-temporal data and display them
+# ###########
+# 
+# idea triggered by these news articles:
+# https://projekte.sueddeutsche.de/artikel/wissen/bilanz-des-sommers-und-der-hitzewelle-2018-e547928/
+# https://projekte.sueddeutsche.de/artikel/panorama/duerre-in-deutschland-e407144/
+# https://www.nytimes.com/interactive/2018/08/30/climate/how-much-hotter-is-your-hometown.html
+# 
+# idea to replicate the news infos by using the weather data of the german weather service
+# 
+# Sept./Oct. 2018, written, adapted, modified and commented by 
+# Marius Philipp (EAGLE MSc. student, student assistant Aug/Sept. 2018) and Martin Wegmann
+# 
+# to-do and ideas:
+# make it more generic to select years, months and datasets
+# loop through months and download all
+# analyse trend and map it
+# create animations w/ gganimate and tweenr of time series (maps and line plot), mean temp map and transition to year x map
+# adapt some ideas from this weather in Japan R script: https://ryo-n7.github.io/2018-10-04-visualize-weather-in-japan/
+
 
 if(!require(gganimate)){
   install.packages("gganimate")
