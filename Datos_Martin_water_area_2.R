@@ -244,6 +244,11 @@ my_df3 <- data.frame(my_mat3,stringsAsFactors=FALSE)
 names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
+for (i in 1:nrow(my_df3)){
+my_df3[i, 3] <- round(as.numeric(my_df3[i, 3]), digits = 2)
+}
+
+
 #######
 
 if(!require(maps)){
@@ -260,7 +265,7 @@ reswd <- "c:/Data/GIF/"
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
 setwd("c:/Data/Seasonal_Water_Color/")
 for (i in 1:dim(tmp_Stack1)[3]){
-  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 680, height = 600)
   
   
   plot(tmp_Stack1[[i]],
@@ -285,7 +290,7 @@ list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names =
 if(!file.exists(paste0(reswd,"Permanent.gif"))) {
 setwd("c:/Data/Permanent_Water_Color/")
 for (i in 1:dim(tmp_Stack2)[3]){
-  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 680, height = 600)
   
   
   plot(tmp_Stack2[[i]],
@@ -310,7 +315,7 @@ for (i in 1:dim(tmp_Stack2)[3]){
 if(!file.exists(paste0(reswd,"Total.gif"))) {
 setwd("c:/Data/Total_Water_Color/")
 for (i in 1:dim(tmp_Stack3)[3]){
-  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 480, height = 400)
+  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 680, height = 600)
   
   
   plot(tmp_Stack3[[i]],
@@ -345,10 +350,19 @@ if(!require(shinythemes)){
   install.packages("shinythemes")
   library(shinythemes)
 }
+if(!require(DT)){
+  install.packages("DT")
+  library(DT)
+}
+if(!require(mgcv)){
+  install.packages("mgcv")
+  library(mgcv)
+}
 
 
 ui <- fluidPage(
-  theme = shinythemes::shinytheme("superhero"),
+  
+  theme = shinythemes::shinytheme("darkly"),
   navbarPage("Time Series of Surface Water Body in Aculeo Lake",
              tabPanel("Area v/s Years",
                       sidebarLayout(position = "left",
@@ -358,7 +372,8 @@ ui <- fluidPage(
                                                    choices = c("Permanent", "Seasonal", "Total"),
                                                    selected = "Total")
                                     ),
-                                    mainPanel(plotOutput("coolplot")))
+                                    mainPanel(plotOutput("coolplot")
+                                    ))
              ),
              
              tabPanel("Timeseries representation in a GIF",
@@ -382,27 +397,25 @@ ui <- fluidPage(
                                     mainPanel(plotOutput(outputId="Image", width="480px",height="400px")))
              ),
              
-             tabPanel("Table",
+             tabPanel("Table of Data",
                       sidebarLayout(position = "left",
                                     sidebarPanel(
                                       sliderInput("yearsInput3", "Choose Years between:", 2000, 2018, c(2000, 2001)),
-                                      checkboxGroupInput("typeInput3", "Choose a type of water:",
-                                                         choices = c("Permanent", "Seasonal", "Total"),
-                                                         selected = "Total")
-                                    ),
-                                    mainPanel(tableOutput("results"))
-                      ))
-             
-  ))
+                                      selectInput("typeInput3", "Choose a type of water:",
+                                                   choices = c("Permanent", "Seasonal", "Total")),
+                                      downloadButton("download_data")),
+                                    mainPanel(DT::dataTableOutput("table")))
+             ))
+)
 
 server <- function(input, output, session) {
   
   output$coolplot <- renderPlot({
-    filtered <-
-      my_df3 %>%
-      filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
-             Type == input$typeInput,
-      )
+    (filtered <-
+       my_df3 %>%
+       filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
+              Type == input$typeInput,
+       ))
     
     ggplot(filtered, aes(Year, y=as.numeric(Area), group = input$typeInput)) +
       geom_line(aes(colour = Type), position = "stack", size = .5) +
@@ -410,7 +423,6 @@ server <- function(input, output, session) {
       geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
       labs(x="Year", y="Area"~Km^2) + 
       theme_minimal()
-    
     
   })
   
@@ -433,7 +445,7 @@ server <- function(input, output, session) {
   output$Image <- renderImage({
     # When input$n is 3, filename is ./images/image3.jpeg
     filename <- normalizePath(file.path('c:/Data',
-                                        paste(input$typeInput2,"_Water_Color/","Chile_",input$typeInput2,"_",input$yearsInput2, '.png', sep='')))
+                                        paste(input$typeInput2,"_Water_Color/","Chile_",input$typeInput2,"_",input$yearsInput2, ".png", sep='')))
     
     # Return a list containing the filename and alt text
     list(src = filename,
@@ -443,15 +455,25 @@ server <- function(input, output, session) {
   
   ###############################  
   
-  output$results <- renderTable({
-    (filtered<-
-       my_df3 %>%
-       filter(Year >= input$yearsInput3[1],
-              Year <= input$yearsInput3[2],
-              Type == input$typeInput3
-       ))
-  },align = 'c', rownames = FALSE, digits = 2, colnames = TRUE, spacing = 'xs')
+  filtered_data <- reactive({
+    data <- my_df3 %>%
+        filter(Year >= input$yearsInput3[1] & Year <= input$yearsInput3[2],
+               Type == input$typeInput3)
+  })
   
-  ####################################
+  output$table <- DT::renderDataTable({
+    data <- filtered_data()
+    data
+  })
+  
+  output$download_data <- downloadHandler(
+    filename = paste("Aculeo_Lake_Data",".csv",sep=''),
+    content = function(file) {
+      data <- filtered_data()
+      write.csv(data, file, row.names = FALSE)
+    }
+  )
+  
 }
 shinyApp(ui = ui, server = server)
+
