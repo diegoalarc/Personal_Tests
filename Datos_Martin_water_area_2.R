@@ -346,10 +346,6 @@ if(!require(shiny)){
   install.packages("shiny")
   library(shiny)
 }
-if(!require(shinythemes)){
-  install.packages("shinythemes")
-  library(shinythemes)
-}
 if(!require(DT)){
   install.packages("DT")
   library(DT)
@@ -362,7 +358,6 @@ if(!require(mgcv)){
 
 ui <- fluidPage(
   
-  theme = shinythemes::shinytheme("darkly"),
   navbarPage("Time Series of Surface Water Body in Aculeo Lake",
              tabPanel("Area v/s Years",
                       sidebarLayout(position = "left",
@@ -422,7 +417,7 @@ server <- function(input, output, session) {
       geom_point(aes(colour = Type), position = "stack", size = 2) +
       geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
       labs(x="Year", y="Area"~Km^2) + 
-      theme_minimal()
+      theme_light()
     
   })
   
@@ -467,13 +462,13 @@ server <- function(input, output, session) {
   })
   
   output$download_data <- downloadHandler(
+    
     filename = paste("Aculeo_Lake_Data",".csv",sep=''),
-    content = function(file) {
+      content = function(file) {
       data <- filtered_data()
       write.csv(data, file, row.names = FALSE)
     }
   )
-  
 }
 shinyApp(ui = ui, server = server)
 
