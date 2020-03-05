@@ -73,6 +73,7 @@ dir.create("Total_Water_Color")
 tempdl <- "c:/Data/Chile_all.zip"
 setwd("c:/Data/Data_Bruto/")
 
+
 fileURL <-
   "https://storage.googleapis.com/global-surface-water-stats/zips/Chile_all.zip"   
 if (!file.exists(tempdl)) {
@@ -81,6 +82,7 @@ if (!file.exists(tempdl)) {
 } else {
   unzip(tempdl,exdir = ".",overwrite = TRUE)
 }
+
 #identify the folders
 fromFolder <- "c:/Data/Data_Bruto/"
 toFolder <- "c:/Data/Zona_Study/"
@@ -89,7 +91,6 @@ toFolder <- "c:/Data/Zona_Study/"
 list.of.files <- list.files(fromFolder, pattern=c("^Chile_classes_(.*)_0000000000-0000128000.tif$"))
 
 # copy the files to the toFolder  - THIS DOES NOT WORK WHILE EVERYTHING PRIOR HAS WORKED
-
 file.copy(file.path(fromFolder,list.of.files), toFolder, overwrite=TRUE)
 
 #create the path where are all the images Landsat8 we will use.
@@ -99,11 +100,10 @@ Water_all_IMAGE <- list.files(Water_IMAGE_path,
                               full.names = TRUE,
                               pattern = ".tif$")
 #Create a List of Raster Files
-temporal <- list()
+water_aculeo_raster <- list()
 
 for (i in 1:length(Water_all_IMAGE)){ 
-  water_aculeo_raster <- raster(Water_all_IMAGE[i])
-  temporal <- append(temporal,water_aculeo_raster)
+  water_aculeo_raster[[i]] <- raster(Water_all_IMAGE[i])
 }
 
 x_coord <- c(-70.94622,  -70.87834)
@@ -118,8 +118,8 @@ aculeo_extent <- sps
 #Create a List of the ROI.
 crop_list <- list()
 
-for (i in 1:length(temporal)){
-  crop_list[[i]] <- crop(temporal[[i]],aculeo_extent)
+for (i in 1:length(water_aculeo_raster)){
+  crop_list[[i]] <- crop(water_aculeo_raster[[i]],aculeo_extent)
 }
 
 names_file <- vector(mode="character")
@@ -219,9 +219,15 @@ all_IMAGE4 <- list.files(IMAGE_path4,
                          pattern = ".tif$")
 tmp_Stack3 <- stack(all_IMAGE4)
 
+#######################################################
+#It is necessary to check if the packages are install in  RStudio
+if(!require(units)){
+  install.packages("units")
+  library(units)
+}
 
-
-# Define dataframe and fill it with the dates
+# Define dataframe and fill it with the Year, Type and Area 
+#for the difference types of water
 my_years <- substr(names_file, start=15, stop=18)
 my_mat <- matrix(data = "Seasonal", nrow = length(my_years), ncol = 3)
 my_mat[,1] <- my_years
@@ -257,12 +263,18 @@ names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
 for (i in 1:nrow(my_df3)){
-my_df3[i, 3] <- round(as.numeric(my_df3[i, 3]), digits = 2)
+my_df3[i, 3] <- (round(as.numeric(my_df3[i, 3]), digits = 2))
 }
 
+for (i in 1:nrow(my_df3)){
+b <- data.frame(Area = set_units(as.numeric(my_df3[i, 3]), K^2))
+my_df4[i,3] <- rbind.data.frame(b)
+rm(b)
+}
+names(my_df4) <- c("Year", "Type", "Area Km^2")
 
 #######
-
+#It is necessary to check if the packages are install in  RStudio
 if(!require(maps)){
   install.packages("maps")
   library(maps)
@@ -349,7 +361,7 @@ for (i in 1:dim(tmp_Stack3)[3]){
 }
 
 
-###########Shiny######
+
 if(!require(ggplot2)){
   install.packages("ggplot2")
   library(ggplot2)
@@ -366,8 +378,23 @@ if(!require(mgcv)){
   install.packages("mgcv")
   library(mgcv)
 }
+if(!require(ggpmisc)){
+  install.packages("ggpmisc")
+  library(ggpmisc)
+}
+if(!require(glue)){
+  install.packages("glue")
+  library(glue)
+}
 
+#add the CSS property white-space: nowrap to the cells in the columns, thus defining a CSS
+#class and assigning it to the columns with className in the columnDefs option.
+css <- "
+.nowrap {
+  white-space: nowrap;
+}"
 
+#Shiny app
 ui <- fluidPage(
   
   navbarPage("Time Series of Surface Water Body in Aculeo Lake",
@@ -424,11 +451,18 @@ server <- function(input, output, session) {
               Type == input$typeInput,
        ))
     
+    my.formula <- y ~ x
     ggplot(filtered, aes(Year, y=as.numeric(Area), group = input$typeInput)) +
       geom_line(aes(colour = Type), position = "stack", size = .5) +
       geom_point(aes(colour = Type), position = "stack", size = 2) +
-      geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
-      labs(x="Year", y="Area"~Km^2) + 
+      geom_smooth(method="loess", se=TRUE, formula= my.formula) +
+      stat_poly_eq(formula = my.formula, 
+                  aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                  label.x = "left", label.y = "bottom",
+                  parse = TRUE) +
+      labs(title = "TimeSeries Aculeo Lake", subtitle = glue("All data here is produced under the Copernicus Programme, free of charge, without restriction of use."),
+           caption = "Source: EC JRC/Google") +
+      xlab("Year") + ylab("Area"~Km^2) + 
       theme_light()
     
   })
@@ -463,14 +497,18 @@ server <- function(input, output, session) {
   ###############################  
   
   filtered_data <- reactive({
-    data <- my_df3 %>%
+    data <- my_df4 %>%
         filter(Year >= input$yearsInput3[1] & Year <= input$yearsInput3[2],
                Type == input$typeInput3)
   })
   
   output$table <- DT::renderDataTable({
     data <- filtered_data()
-    data
+    datatable(data,  options = list(pageLength = 19,
+      columnDefs = list(
+        list(className = "nowrap", targets = "_all")
+      )
+    ),rownames = FALSE) 
   })
   
   output$download_data <- downloadHandler(
