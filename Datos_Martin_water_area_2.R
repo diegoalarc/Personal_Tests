@@ -1,27 +1,22 @@
 # ###########
-# download and display temperature and precipitation for Germany
+# download and display Area of water and look the diminish of the Aculeo Lake, Paine, Chile.
 # created just for teaching purpose - not for scientific analysis! 100% accuracy not ensured
-# learning goal: download data, convert them, analyse spatio-temporal data and display them
+# learning goal: download data, convert them, analyse spatio-temporal data and display them in differents forms.
 # ###########
 # 
-# idea triggered by these news articles:
-# https://projekte.sueddeutsche.de/artikel/wissen/bilanz-des-sommers-und-der-hitzewelle-2018-e547928/
-# https://projekte.sueddeutsche.de/artikel/panorama/duerre-in-deutschland-e407144/
-# https://www.nytimes.com/interactive/2018/08/30/climate/how-much-hotter-is-your-hometown.html
+# idea triggered by these news, videos and personal experience:
+# https://twitter.com/copernicusems/status/1178001302829375490
+# https://www.youtube.com/watch?v=aEi-itbg4bs
+# https://earthobservatory.nasa.gov/images/144836/lake-aculeo-dries-up
+# https://www.straitstimes.com/world/americas/drought-wipes-chiles-popular-lake-aculeo-from-the-map
+# https://chiletoday.cl/site/how-chile-should-prepare-for-a-future-without-water/
 # 
-# idea to replicate the news infos by using the weather data of the german weather service
-# 
-# Sept./Oct. 2018, written, adapted, modified and commented by 
-# Marius Philipp (EAGLE MSc. student, student assistant Aug/Sept. 2018) and Martin Wegmann
-# 
-# to-do and ideas:
-# make it more generic to select years, months and datasets
-# loop through months and download all
-# analyse trend and map it
-# create animations w/ gganimate and tweenr of time series (maps and line plot), mean temp map and transition to year x map
-# adapt some ideas from this weather in Japan R script: https://ryo-n7.github.io/2018-10-04-visualize-weather-in-japan/
+# Originally written by Diego Alonso Alarcón Díaz in January 2020, latest Version: March 2020
+# Code is good to go!
 
 
+
+#It is necessary to check if the packages are install in  RStudio
 if(!require(gganimate)){
   install.packages("gganimate")
   library(gganimate)
@@ -50,20 +45,15 @@ if(!require(magick)){
   install.packages("magick")
   library(magick)
 }
-if(!require(raster)){
-  install.packages("raster")
-  library(raster)
-}
 if(!require(rgdal)){
   install.packages("rgdal")
   library(rgdal)
 }
-if(!require(sp)){
-  install.packages("sp")
-  library(sp)
-}
 
+#######################################################
 
+#It is necessary to set and create the folders before hand to storage
+#the data and also make the different file we will create
 setwd("c:/")
 dir.create("Data")
 
@@ -78,8 +68,7 @@ dir.create("Seasonal_Water_Color")
 dir.create("Permanent_Water_Color")
 dir.create("Total_Water_Color")
 
-
-
+#######################################################
 
 tempdl <- "c:/Data/Chile_all.zip"
 setwd("c:/Data/Data_Bruto/")
