@@ -52,23 +52,24 @@ if(!require(rgdal)){
 
 #######################################################
 
-#It is necessary to set and create the folders before hand to storage
-#the data and also make the different file we will create
-setwd("c:/")
-dir.create("Data")
+#It is necessary to set and create the folders before 
+#hand to storage the data
+setwd("c:/")#Setting path
+dir.create("Data")#Create folder
 
-setwd("c:/Data/")
-dir.create("GIF")
-dir.create("Permanent_Water")
-dir.create("Seasonal_Water")
-dir.create("Total_Water")
-dir.create("Zona_Study")
-dir.create("Data_Bruto")
-dir.create("Seasonal_Water_Color")
-dir.create("Permanent_Water_Color")
-dir.create("Total_Water_Color")
+setwd("c:/Data/")#Setting path
+dir.create("GIF")#Create folder
+dir.create("Permanent_Water")#Create folder
+dir.create("Seasonal_Water")#Create folder
+dir.create("Total_Water")#Create folder
+dir.create("Zona_Study")#Create folder
+dir.create("Data_Bruto")#Create folder
+dir.create("Seasonal_Water_Color")#Create folder
+dir.create("Permanent_Water_Color")#Create folder
+dir.create("Total_Water_Color")#Create folder
 
 #######################################################
+
 
 tempdl <- "c:/Data/Chile_all.zip"
 setwd("c:/Data/Data_Bruto/")
