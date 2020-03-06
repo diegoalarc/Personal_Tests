@@ -11,7 +11,7 @@
 # https://www.straitstimes.com/world/americas/drought-wipes-chiles-popular-lake-aculeo-from-the-map
 # https://chiletoday.cl/site/how-chile-should-prepare-for-a-future-without-water/
 # 
-# Originally written by Diego Alonso Alarcón Díaz in January 2020, latest Version: March 2020
+# Originally written by Diego Alonso Alarc?n D?az in January 2020, latest Version: March 2020
 # Code is good to go!
 
 
@@ -263,15 +263,12 @@ names(my_df3) <- c("Year", "Type", "Area")
 my_df3 <- rbind.data.frame(my_df,my_df1,my_df2)
 
 for (i in 1:nrow(my_df3)){
-my_df3[i, 3] <- (round(as.numeric(my_df3[i, 3]), digits = 2))
+  my_df3[i, 3] <- (round(as.numeric(my_df3[i, 3]), digits = 4))
 }
 
-for (i in 1:nrow(my_df3)){
-b <- data.frame(Area = set_units(as.numeric(my_df3[i, 3]), K^2))
-my_df4[i,3] <- rbind.data.frame(b)
-rm(b)
-}
-names(my_df4) <- c("Year", "Type", "Area Km^2")
+b <- data.frame(Area = set_units(as.numeric(my_df3[, 3]), K^2))
+my_df3[,3] <- rbind.data.frame(b)
+
 
 #######
 #It is necessary to check if the packages are install in  RStudio
@@ -287,77 +284,77 @@ if(!require(GISTools)){
 
 reswd <- "c:/Data/GIF/"
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
-setwd("c:/Data/Seasonal_Water_Color/")
-for (i in 1:dim(tmp_Stack1)[3]){
-  png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 680, height = 600)
-  
-  
-  plot(tmp_Stack1[[i]],
-       main=names(tmp_Stack1)[i],
-       legend=FALSE,
-       col = c("green", "blue"),
-       breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
-  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
-  
-  dev.off()
-}
-setwd("c:/Data/GIF/")
-list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
-  image_read() %>% # reads each path file
-  image_join() %>% # joins image
-  image_animate(fps=1) %>% # animates, can opt for number of loops
-  image_write("Seasonal.gif") # write to current dir
+  setwd("c:/Data/Seasonal_Water_Color/")
+  for (i in 1:dim(tmp_Stack1)[3]){
+    png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 680, height = 600)
+    
+    
+    plot(tmp_Stack1[[i]],
+         main=names(tmp_Stack1)[i],
+         legend=FALSE,
+         col = c("green", "blue"),
+         breaks=c(0,.000000000000000000001,1))
+    maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
+    north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
+    
+    dev.off()
+  }
+  setwd("c:/Data/GIF/")
+  list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
+    image_read() %>% # reads each path file
+    image_join() %>% # joins image
+    image_animate(fps=1) %>% # animates, can opt for number of loops
+    image_write("Seasonal.gif") # write to current dir
 }
 ####
 
 if(!file.exists(paste0(reswd,"Permanent.gif"))) {
-setwd("c:/Data/Permanent_Water_Color/")
-for (i in 1:dim(tmp_Stack2)[3]){
-  png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 680, height = 600)
-  
-  
-  plot(tmp_Stack2[[i]],
-       main=names(tmp_Stack2)[i],
-       legend=FALSE,
-       col = c("green", "blue"),
-       breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
-  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
-  
-  dev.off()
-}
+  setwd("c:/Data/Permanent_Water_Color/")
+  for (i in 1:dim(tmp_Stack2)[3]){
+    png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 680, height = 600)
+    
+    
+    plot(tmp_Stack2[[i]],
+         main=names(tmp_Stack2)[i],
+         legend=FALSE,
+         col = c("green", "blue"),
+         breaks=c(0,.000000000000000000001,1))
+    maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
+    north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
+    
+    dev.off()
+  }
   setwd("c:/Data/GIF/")
   list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
-  image_read() %>% # reads each path file
-  image_join() %>% # joins image
-  image_animate(fps=1) %>% # animates, can opt for number of loops
-  image_write("Permanent.gif") # write to current dir
+    image_read() %>% # reads each path file
+    image_join() %>% # joins image
+    image_animate(fps=1) %>% # animates, can opt for number of loops
+    image_write("Permanent.gif") # write to current dir
 }
 #######
 
 if(!file.exists(paste0(reswd,"Total.gif"))) {
-setwd("c:/Data/Total_Water_Color/")
-for (i in 1:dim(tmp_Stack3)[3]){
-  png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 680, height = 600)
-  
-  
-  plot(tmp_Stack3[[i]],
-       main=names(tmp_Stack3)[i],
-       legend=FALSE,
-       col = c("green", "blue"),
-       breaks=c(0,.000000000000000000001,1))
-  maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
-  north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
-  
-  dev.off()
-}
+  setwd("c:/Data/Total_Water_Color/")
+  for (i in 1:dim(tmp_Stack3)[3]){
+    png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 680, height = 600)
+    
+    
+    plot(tmp_Stack3[[i]],
+         main=names(tmp_Stack3)[i],
+         legend=FALSE,
+         col = c("green", "blue"),
+         breaks=c(0,.000000000000000000001,1))
+    maps::map.scale(x=-70.945, y=-33.865, relwidth=0.15, metric = TRUE, ratio=FALSE)  
+    north.arrow(xb=-70.882, yb=-33.827, len=0.0009, lab="N") 
+    
+    dev.off()
+  }
   setwd("c:/Data/GIF/")
   list.files(path="c:/Data/Total_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
-  image_read() %>% # reads each path file
-  image_join() %>% # joins image
-  image_animate(fps=1) %>% # animates, can opt for number of loops
-  image_write("Total.gif") # write to current dir
+    image_read() %>% # reads each path file
+    image_join() %>% # joins image
+    image_animate(fps=1) %>% # animates, can opt for number of loops
+    image_write("Total.gif") # write to current dir
 }
 
 
@@ -404,7 +401,8 @@ ui <- fluidPage(
                                       sliderInput("yearsInput", "Choose Years between:", 2000, 2018, c(2000, 2001)),
                                       radioButtons("typeInput", "Choose a type of water:",
                                                    choices = c("Permanent", "Seasonal", "Total"),
-                                                   selected = "Total")
+                                                   selected = "Total"),
+                                      downloadButton('download_plot')
                                     ),
                                     mainPanel(plotOutput("coolplot")
                                     ))
@@ -435,8 +433,9 @@ ui <- fluidPage(
                       sidebarLayout(position = "left",
                                     sidebarPanel(
                                       sliderInput("yearsInput3", "Choose Years between:", 2000, 2018, c(2000, 2001)),
-                                      selectInput("typeInput3", "Choose a type of water:",
-                                                   choices = c("Permanent", "Seasonal", "Total")),
+                                      radioButtons("typeInput3", "Choose a type of water:",
+                                                  choices = c("Permanent", "Seasonal", "Total"),
+                                                  selected = "Total"),
                                       downloadButton("download_data")),
                                     mainPanel(DT::dataTableOutput("table")))
              ))
@@ -457,15 +456,47 @@ server <- function(input, output, session) {
       geom_point(aes(colour = Type), position = "stack", size = 2) +
       geom_smooth(method="loess", se=TRUE, formula= my.formula) +
       stat_poly_eq(formula = my.formula, 
-                  aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-                  label.x = "left", label.y = "bottom",
-                  parse = TRUE) +
+                   aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                   label.x = "left", label.y = "bottom",
+                   parse = TRUE) +
       labs(title = "TimeSeries Aculeo Lake", subtitle = glue("All data here is produced under the Copernicus Programme, free of charge, without restriction of use."),
            caption = "Source: EC JRC/Google") +
       xlab("Year") + ylab("Area"~Km^2) + 
       theme_light()
     
   })
+  
+  
+  plotInput = function() {
+    (filtered <-
+       my_df3 %>%
+       filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
+              Type == input$typeInput,
+       ))
+    
+    my.formula <- y ~ x
+    ggplot(filtered, aes(Year, y=as.numeric(Area), group = input$typeInput)) +
+      geom_line(aes(colour = Type), position = "stack", size = .5) +
+      geom_point(aes(colour = Type), position = "stack", size = 2) +
+      geom_smooth(method="loess", se=TRUE, formula= my.formula) +
+      stat_poly_eq(formula = my.formula, 
+                   aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                   label.x = "left", label.y = "bottom",
+                   parse = TRUE) +
+      labs(title = "TimeSeries Aculeo Lake", subtitle = glue("All data here is produced under the Copernicus Programme, free of charge, without restriction of use."),
+           caption = "Source: EC JRC/Google") +
+      xlab("Year") + ylab("Area"~Km^2) + 
+      theme_light()
+  }
+  output$download_plot = downloadHandler(
+    filename = paste("Choose_a_name.png", sep=''),
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 500, units = "in")
+      }
+      ggsave(file, plot = plotInput(), device = device)
+    })
   
   ########################################
   
@@ -497,24 +528,24 @@ server <- function(input, output, session) {
   ###############################  
   
   filtered_data <- reactive({
-    data <- my_df4 %>%
-        filter(Year >= input$yearsInput3[1] & Year <= input$yearsInput3[2],
-               Type == input$typeInput3)
+    data <- my_df3 %>%
+      filter(Year >= input$yearsInput3[1] & Year <= input$yearsInput3[2],
+             Type == input$typeInput3)
   })
   
   output$table <- DT::renderDataTable({
     data <- filtered_data()
-    datatable(data,  options = list(pageLength = 19,
-      columnDefs = list(
-        list(className = "nowrap", targets = "_all")
-      )
+    datatable(data,  options = list(pageLength = length(my_years),
+                                    columnDefs = list(
+                                      list(className = "nowrap", targets = "_all")
+                                    )
     ),rownames = FALSE) 
   })
   
   output$download_data <- downloadHandler(
     
     filename = paste("Aculeo_Lake_Data",".csv",sep=''),
-      content = function(file) {
+    content = function(file) {
       data <- filtered_data()
       write.csv(data, file, row.names = FALSE)
     }
