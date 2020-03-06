@@ -376,14 +376,16 @@ if(!require(GISTools)){
   library(GISTools)
 }
 
-
+#Save a path where the *.GIF file will be save
 reswd <- "c:/Data/GIF/"
+#Here it will be check out if the .GIF was created otherwise the code will run
 if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
+  #Set the folder where the *.png files will be created
   setwd("c:/Data/Seasonal_Water_Color/")
+  ##For-loop to create *.png files for Seasonal Water
   for (i in 1:dim(tmp_Stack1)[3]){
     png(filename=paste0(names(tmp_Stack1)[i],".png"), width = 680, height = 600)
-    
-    
+    #Plot of rasters reclassified data
     plot(tmp_Stack1[[i]],
          main=names(tmp_Stack1)[i],
          legend=FALSE,
@@ -394,21 +396,24 @@ if(!file.exists(paste0(reswd,"Seasonal.gif"))) {
     
     dev.off()
   }
+  #Set the folder where the *.GIF file will be created
   setwd("c:/Data/GIF/")
+  #Creation of the * .GIF file listing different * .png files in order of name (sorted by years)
   list.files(path="c:/Data/Seasonal_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
     image_read() %>% # reads each path file
     image_join() %>% # joins image
     image_animate(fps=1) %>% # animates, can opt for number of loops
     image_write("Seasonal.gif") # write to current dir
 }
-####
 
+#Here it will be check out if the .GIF was created otherwise the code will run
 if(!file.exists(paste0(reswd,"Permanent.gif"))) {
+  #Set the folder where the *.png files will be created
   setwd("c:/Data/Permanent_Water_Color/")
+  ##For-loop to create *.png files for Permanent Water
   for (i in 1:dim(tmp_Stack2)[3]){
     png(filename=paste0(names(tmp_Stack2)[i],".png"), width = 680, height = 600)
-    
-    
+    #Plot of rasters reclassified data
     plot(tmp_Stack2[[i]],
          main=names(tmp_Stack2)[i],
          legend=FALSE,
@@ -419,21 +424,24 @@ if(!file.exists(paste0(reswd,"Permanent.gif"))) {
     
     dev.off()
   }
+  #Set the folder where the *.GIF file will be created
   setwd("c:/Data/GIF/")
+  #Creation of the * .GIF file listing different * .png files in order of name (sorted by years)
   list.files(path="c:/Data/Permanent_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
     image_read() %>% # reads each path file
     image_join() %>% # joins image
     image_animate(fps=1) %>% # animates, can opt for number of loops
     image_write("Permanent.gif") # write to current dir
 }
-#######
 
+#Here it will be check out if the .GIF was created otherwise the code will run
 if(!file.exists(paste0(reswd,"Total.gif"))) {
+  #Set the folder where the *.png files will be created
   setwd("c:/Data/Total_Water_Color/")
+  ##For-loop to create *.png files for Total Water
   for (i in 1:dim(tmp_Stack3)[3]){
     png(filename=paste0(names(tmp_Stack3)[i],".png"), width = 680, height = 600)
-    
-    
+    #Plot of rasters reclassified data
     plot(tmp_Stack3[[i]],
          main=names(tmp_Stack3)[i],
          legend=FALSE,
@@ -444,7 +452,9 @@ if(!file.exists(paste0(reswd,"Total.gif"))) {
     
     dev.off()
   }
+  #Set the folder where the *.GIF file will be created
   setwd("c:/Data/GIF/")
+  #Creation of the * .GIF file listing different * .png files in order of name (sorted by years)
   list.files(path="c:/Data/Total_Water_Color/", pattern = '*.png', full.names = TRUE) %>% 
     image_read() %>% # reads each path file
     image_join() %>% # joins image
@@ -483,15 +493,18 @@ if(!require(glue)){
 
 #add the CSS property white-space: nowrap to the cells in the columns, thus defining a CSS
 #class and assigning it to the columns with className in the columnDefs option.
-css <- "
-.nowrap {
+css <- ".nowrap {
   white-space: nowrap;
 }"
+
+#######################################################
 
 #Shiny app
 ui <- fluidPage(
   
   navbarPage("Time Series of Surface Water Body in Aculeo Lake",
+             #######################################################
+             
              tabPanel("Area v/s Years",
                       sidebarLayout(position = "left",
                                     sidebarPanel(
@@ -504,6 +517,7 @@ ui <- fluidPage(
                                     mainPanel(plotOutput("coolplot")
                                     ))
              ),
+             #######################################################
              
              tabPanel("Timeseries representation in a GIF",
                       sidebarLayout(position = "left",
@@ -514,6 +528,7 @@ ui <- fluidPage(
                                     ),
                                     mainPanel(plotOutput(outputId="preImage", width="480px",height="400px")))
              ),
+             #######################################################
              
              tabPanel("Image for the Year and Type",
                       sidebarLayout(position = "left",
@@ -525,6 +540,7 @@ ui <- fluidPage(
                                     ),
                                     mainPanel(plotOutput(outputId="Image", width="480px",height="400px")))
              ),
+             #######################################################
              
              tabPanel("Table of Data",
                       sidebarLayout(position = "left",
@@ -538,15 +554,18 @@ ui <- fluidPage(
              ))
 )
 
+#######################################################
+
 server <- function(input, output, session) {
   
   output$coolplot <- renderPlot({
+    #Filtering the data to create the plot by sliderInput
     (filtered <-
        my_df3 %>%
        filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
               Type == input$typeInput,
        ))
-    
+    #Plot the Results using the ggplot2 package
     my.formula <- y ~ x
     ggplot(filtered, aes(Year, y=as.numeric(Area), group = input$typeInput)) +
       geom_line(aes(colour = Type), position = "stack", size = .5) +
@@ -563,8 +582,10 @@ server <- function(input, output, session) {
     
   })
   
+  #######################################################
   
   plotInput = function() {
+    #Plot the Results using a function and getting the this one ready for download this as a *.png
     (filtered <-
        my_df3 %>%
        filter(Year >= input$yearsInput[1] & Year <= input$yearsInput[2],
@@ -585,7 +606,11 @@ server <- function(input, output, session) {
       xlab("Year") + ylab("Area"~Km^2) + 
       theme_light()
   }
+  
+  #######################################################
+  
   output$download_plot = downloadHandler(
+    #Function to download the plot made it by ggplot
     filename = paste("Choose_a_name.png", sep=''),
     content = function(file) {
       device <- function(..., width, height) {
@@ -595,36 +620,36 @@ server <- function(input, output, session) {
       ggsave(file, plot = plotInput(), device = device)
     })
   
-  ########################################
+  #######################################################
   
   output$preImage <- renderImage({
-    # When input$n is 3, filename is ./images/image3.jpeg
+    #Created the file name from the information of the radio Buttons in order to 
+    #display the *.GIF image to the whole period of time for a type of water body
     filename <- normalizePath(file.path('c:/Data/GIF',
                                         paste(input$typeInput1, '.gif', sep='')))
     
-    # Return a list containing the filename and alt text
+    #Return a list containing the filename and alt text
     list(src = filename,
          alt = paste(input$typeInput1))
-    
-    
   }, deleteFile = FALSE)
   
   #################################################
   
   output$Image <- renderImage({
-    # When input$n is 3, filename is ./images/image3.jpeg
+    #Created the file name from the information of the radio Buttons in order to 
+    #display the *.png image for an specific period of time and type of water body
     filename <- normalizePath(file.path('c:/Data',
                                         paste(input$typeInput2,"_Water_Color/","Chile_",input$typeInput2,"_",input$yearsInput2, ".png", sep='')))
     
-    # Return a list containing the filename and alt text
+    #Return a list containing the filename and alt text
     list(src = filename,
          alt = paste(input$typeInput2))
-    
   }, deleteFile = FALSE)
   
-  ###############################  
+  #######################################################
   
   filtered_data <- reactive({
+    #
     data <- my_df3 %>%
       filter(Year >= input$yearsInput3[1] & Year <= input$yearsInput3[2],
              Type == input$typeInput3)
@@ -638,6 +663,8 @@ server <- function(input, output, session) {
                                     )
     ),rownames = FALSE) 
   })
+
+  #######################################################
   
   output$download_data <- downloadHandler(
     
